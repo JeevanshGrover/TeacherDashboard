@@ -5,7 +5,6 @@ export const fetchTeachers = createAsyncThunk(
     "teachers/fetchAll",
     async () => {
         const res = await axios.get("/teacher");
-        console.log(res);
         return res.data.data;
     }
 );
@@ -14,7 +13,6 @@ export const fetchTeacherSummary = createAsyncThunk(
     "teachers/fetchSummary",
     async (teacher_id) => {
         const res = await axios.get(`/teacher/${teacher_id}/summary`);
-        console.log(res);
         return res.data.data;
     }
 );
@@ -25,7 +23,6 @@ export const fetchTeacherTrends = createAsyncThunk(
         const res = await axios.get(
             `/teacher/${teacher_id}/trends?range=${range}`
         );
-        console.log(res);
         return res.data.data;
     }
 );
@@ -51,7 +48,6 @@ export const teacherSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-
             .addCase(fetchTeachers.pending, (state) => {
                 state.loadingList = true;
             })

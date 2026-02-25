@@ -5,7 +5,6 @@ export const fetchDashboardSummary = createAsyncThunk(
     "dashboard/fetchSummary",
     async (range) => {
         const res = await axios.get(`/activity/dashboard/summary?range=${range}`)
-        console.log(res)
         return res.data.data;
     }
 )

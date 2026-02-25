@@ -3,12 +3,19 @@ import cors from "cors";
 
 const app = express();
 
-app.use(
-    cors({
-        origin: "https://teacher-dashboard-savra-jqudw9khx-jeevanshgrovers-projects.vercel.app",
-        credentials: true
-    })
-)
+app.use(cors({
+  origin: function (origin, callback) {
+    if (
+      !origin ||
+      origin.endsWith(".vercel.app")
+    ) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true
+}));
 
 app.get("/", (req, res) => {
   res.send("Backend is running. Use /api/v1/... endpoints.");

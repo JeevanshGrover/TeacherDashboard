@@ -5,7 +5,7 @@ const app = express();
 
 app.use(
     cors({
-        origin: "http://localhost:5173",
+        origin: "https://teacher-dashboard-savra.vercel.app",
         credentials: true
     })
 )

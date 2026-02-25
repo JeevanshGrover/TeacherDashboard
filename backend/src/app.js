@@ -5,7 +5,7 @@ const app = express();
 
 app.use(
     cors({
-        origin: "https://teacher-dashboard-savra-jqudw9khx-jeevanshgrovers-projects.vercel.app/",
+        origin: "https://teacher-dashboard-savra-jqudw9khx-jeevanshgrovers-projects.vercel.app",
         credentials: true
     })
 )

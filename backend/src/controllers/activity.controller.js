@@ -115,63 +115,110 @@ const getDashboardSummary = asyncHandler(async (req, res) => {
 });
 
 const getActivityTrends = asyncHandler(async (req, res) => {
+  const { range } = req.query;
 
-    const { range } = req.query;
+  const now = new Date();
+  let startDate;
+  let groupFormat;
 
-    const now = new Date();
-    let startDate;
-    let groupFormat;
+  if (range === "week") {
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    startDate = new Date(now.getFullYear(), now.getMonth(), diff);
+    startDate.setHours(0, 0, 0, 0);
+    groupFormat = "%Y-%m-%d";
+  } 
+  else if (range === "month") {
+    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    startDate.setHours(0, 0, 0, 0);
+    groupFormat = "%Y-%m-%d";
+  } 
+  else if (range === "year") {
+    startDate = new Date(now.getFullYear(), 0, 1);
+    startDate.setHours(0, 0, 0, 0);
+    groupFormat = "%Y-%m";
+  } 
+  else {
+    throw new ApiError(400, "Invalid range");
+  }
 
-    if (range === "week") {
-        const day = now.getDay();
-        const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-        startDate = new Date(now.getFullYear(), now.getMonth(), diff);
-        startDate.setHours(0, 0, 0, 0);
-        groupFormat = "%Y-%m-%d";
-    }
-
-    else if (range === "month") {
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        groupFormat = "%Y-%m-%d";
-    }
-
-    else if (range === "year") {
-        startDate = new Date(now.getFullYear(), 0, 1);
-        groupFormat = "%Y-%m"; 
-    }
-
-    else {
-        throw new ApiError(400, "Invalid range");
-    }
-
-    const data = await Activity.aggregate([
-        {
-            $match: {
-                created_at: { $gte: startDate }
+  const rawData = await Activity.aggregate([
+    {
+      $match: {
+        created_at: { $gte: startDate }
+      }
+    },
+    {
+      $group: {
+        _id: {
+          period: {
+            $dateToString: {
+              format: groupFormat,
+              date: "$created_at"
             }
+          },
+          type: "$activity_type"
         },
-        {
-            $group: {
-                _id: {
-                    period: {
-                        $dateToString: {
-                            format: groupFormat,
-                            date: "$created_at"
-                        }
-                    },
-                    type: "$activity_type"
-                },
-                count: { $sum: 1 }
-            }
-        },
-        {
-            $sort: { "_id.period": 1 }
-        }
-    ]);
+        count: { $sum: 1 }
+      }
+    },
+    { $sort: { "_id.period": 1 } }
+  ]);
 
-    return res.status(200).json(
-        new ApiResponse(200, data)
+
+  const typeMap = {
+    "Lesson Plan": "lessons",
+    "Quiz": "quizzes",
+    "Question Paper": "assessments"
+  };
+
+  const dataMap = {};
+
+  rawData.forEach(item => {
+    const { period, type } = item._id;
+
+    if (!dataMap[period]) {
+      dataMap[period] = {
+        period,
+        lessons: 0,
+        quizzes: 0,
+        assessments: 0
+      };
+    }
+
+    const key = typeMap[type];
+    if (key) {
+      dataMap[period][key] = item.count;
+    }
+  });
+
+  const result = [];
+  const current = new Date(startDate);
+
+  while (current <= now) {
+    let key;
+
+    if (range === "year") {
+      key = current.toLocaleDateString("en-CA").slice(0, 7);
+      current.setMonth(current.getMonth() + 1);
+    } else {
+      key = current.toLocaleDateString("en-CA"); 
+      current.setDate(current.getDate() + 1);
+    }
+
+    result.push(
+      dataMap[key] || {
+        period: key,
+        lessons: 0,
+        quizzes: 0,
+        assessments: 0
+      }
     );
+  }
+
+  return res.status(200).json(
+    new ApiResponse(200, result)
+  );
 });
 
 export{

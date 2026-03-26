@@ -6,7 +6,7 @@ export default function Sidebar() {
 
       <div>
         <h1 className="text-2xl font-bold text-purple-500 mb-10">
-          SAVRA
+          
         </h1>
 
         <nav className="space-y-4">
@@ -26,8 +26,7 @@ export default function Sidebar() {
       </div>
 
       <div className="text-sm text-gray-500">
-        School Admin <br />
-        Shauryaman Ray
+        Jeevansh grover
       </div>
     </div>
   );
